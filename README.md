@@ -1,2 +1,25 @@
-# EduGrowHub
-A full-stack institutional management web app built with Java Spring Boot, React, MySQL, and deployed on AWS. Features include secure role-based login (Superadmin, Teacher, Student), student enrollment, test mark tracking, automated WhatsApp notifications via Twilio, and GitHub Copilot-powered development workflow.
+# EduGrowHub 🎓
+
+EduGrowHub is a full-stack educational institute management web app. It enables secure login for Superadmin, Teachers, and Students, allowing teachers to enroll students, record test marks, and send WhatsApp notifications automatically via Twilio.
+
+---
+
+## 💻 Tech Stack
+
+| Layer       | Technology                                  |
+|------------|----------------------------------------------|
+| Backend     | Java 17, Spring Boot, Spring Security, JWT  |
+| Frontend    | ReactJS, Tailwind CSS                       |
+| Database    | MySQL (AWS RDS)                             |
+| Deployment  | AWS EC2 (backend), S3 (frontend), RDS       |
+| Messaging   | Twilio API (WhatsApp Notifications)         |
+| CI/CD       | GitHub + GitHub Copilot + GitHub Actions    |
+
+---
+
+## 🗂️ Folder Structure
+
+```bash
+EduGrowHub/
+├── backend/   # Spring Boot app
+├── frontend/  # React + Tailwind app
