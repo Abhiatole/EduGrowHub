@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const SuperadminLogin = () => {
+const SuperadminLogin = ({ onLoginSuccess, onSwitchToTeacher }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,12 +33,20 @@ const SuperadminLogin = () => {
         body: JSON.stringify(formData)
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
+      const data = await response.json();      if (response.ok) {
+        // Store JWT token in localStorage
+        localStorage.setItem('superadminToken', data.token);
+        localStorage.setItem('userRole', 'SUPERLADMIN');
+        localStorage.setItem('userEmail', formData.email);
+        
         setToken(data.token);
         setSuccess(true);
         setFormData({ email: '', password: '' });
+        
+        // Call parent component's success handler
+        if (onLoginSuccess) {
+          onLoginSuccess(data.token);
+        }
       } else {
         setError(data.message || data || 'Login failed');
       }
@@ -138,12 +146,29 @@ const SuperadminLogin = () => {
           <h3 className="text-sm font-medium text-gray-700 mb-2">JWT Token:</h3>
           <div className="p-3 bg-white border border-gray-300 rounded text-xs font-mono break-all">
             {token}
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
+          </div>          <p className="text-xs text-gray-500 mt-2">
             Store this token securely for API authentication
           </p>
         </div>
       )}
+
+      {/* Switch to Teacher Login */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={onSwitchToTeacher}
+          className="text-blue-600 hover:text-blue-800 text-sm font-medium underline"
+        >
+          Switch to Teacher Login
+        </button>
+      </div>
+
+      {/* Additional Info */}
+      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+        <p className="text-sm text-red-700">
+          <strong>For Superadmins:</strong> Access full system administration, 
+          manage teachers, and oversee all operations.
+        </p>
+      </div>
     </div>
   );
 };
