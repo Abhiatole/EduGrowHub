@@ -41,11 +41,13 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))            .authorizeHttpRequests(auth -> auth                .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/superadmin/login").permitAll()
+                .requestMatchers("/api/teacher/login").permitAll()
+                .requestMatchers("/api/teacher/dashboard").hasRole("TEACHER")
+                .requestMatchers("/api/teacher/students").hasRole("TEACHER")
+                .requestMatchers("/api/superadmin/**").hasRole("SUPERADMIN")
                 .anyRequest().authenticated()
             )
             .httpBasic(httpBasic -> httpBasic.disable())
