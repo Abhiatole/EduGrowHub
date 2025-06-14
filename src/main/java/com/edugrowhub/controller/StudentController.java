@@ -92,10 +92,14 @@ public class StudentController {
             );
             
             // Save student
-            Student savedStudent = studentRepository.save(student);
-              // Send WhatsApp notification to teacher (optional)
+            Student savedStudent = studentRepository.save(student);            // Send WhatsApp notification to teacher (optional)
             try {
-                whatsAppNotificationService.sendStudentEnrolledNotification(teacher.getPhoneNumber(), savedStudent);
+                whatsAppNotificationService.notifyTeacherEnrollment(
+                    teacher.getPhoneNumber(), 
+                    teacher.getName(), 
+                    savedStudent.getName(), 
+                    savedStudent.getEmail()
+                );
             } catch (Exception e) {
                 // Log notification failure but don't fail the student creation
                 System.err.println("Failed to send WhatsApp notification: " + e.getMessage());

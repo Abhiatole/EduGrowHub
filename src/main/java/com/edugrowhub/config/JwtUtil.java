@@ -90,4 +90,9 @@ public class JwtUtil {
             return false;
         }
     }
+
+    // Get expiration time in milliseconds
+    public Long getExpirationTime() {
+        return expiration;
+    }
 }

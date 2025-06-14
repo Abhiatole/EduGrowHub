@@ -106,10 +106,8 @@ public class StudentAuthController {
                 log.warn("Student login failed: Invalid password for email: {}", maskEmail(email));
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(createErrorResponse("Invalid email or password"));
-            }
-
-            // Generate JWT token
-            String token = jwtUtil.generateToken(student.getEmail(), "STUDENT");
+            }            // Generate JWT token
+            String token = jwtUtil.generateToken(student.getEmail());
 
             log.info("Student login successful for email: {}, ID: {}", 
                     maskEmail(email), student.getId());
