@@ -40,7 +40,9 @@ public class JwtUtil {
     // Extract username/email from token
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
-    }    // Extract expiration date from token
+    }
+
+    // Extract expiration date from token
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }

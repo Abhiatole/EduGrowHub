@@ -21,10 +21,10 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {    private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
-    private final JwtUtil jwtUtil;
-    private final UserRepository userRepository;    @Override
+    @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, 
                                   @NonNull HttpServletResponse response, 
                                   @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -64,11 +64,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
-        }
-        
+        }        
         filterChain.doFilter(request, response);
     }
-      @Override
+    
+    @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
         // Skip JWT filter for public endpoints

@@ -1,0 +1,51 @@
+# Docker Compose for Local EduGrowHub Testing
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: edugrowhub-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: EdUgr0wHub!2025
+      MYSQL_DATABASE: edugrowhub_db
+      MYSQL_USER: edugrowhub
+      MYSQL_PASSWORD: EdUgr0wHub!2025
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - edugrowhub-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: edugrowhub-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    environment:
+      - DB_URL=jdbc:mysql://mysql:3306/edugrowhub_db
+      - DB_USERNAME=edugrowhub
+      - DB_PASSWORD=EdUgr0wHub!2025
+      - JWT_SECRET=61772be6d3b74f126fe124dd7723269c456366fcc40d9aaa97cf4d302676ae51
+      - JWT_EXPIRATION=3600000
+      - SERVER_PORT=8080
+      - LOG_LEVEL=DEBUG
+      - SHOW_SQL=true
+      - DDL_AUTO=update
+      - TWILIO_ACCOUNT_SID=ACa3028dbecc531e6fcc97403dc22ac58b
+      - TWILIO_AUTH_TOKEN=7744be517b09482dddeed886d97e5bfd
+      - TWILIO_WHATSAPP_FROM=+14155238886
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+    networks:
+      - edugrowhub-network
+
+volumes:
+  mysql_data:
+
+networks:
+  edugrowhub-network:
+    driver: bridge

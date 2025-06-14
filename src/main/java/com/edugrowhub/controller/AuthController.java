@@ -49,9 +49,9 @@ public class AuthController {
             // Verify password
             if (!passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid email or password");
-            }
-              // Authenticate user
+                    .body("Invalid email or password");            }
+            
+            // Authenticate user
             authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     authRequest.getEmail(),
