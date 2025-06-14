@@ -48,12 +48,17 @@
             <artifactId>jjwt-impl</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
-        </dependency>
-        <dependency>
+        </dependency>        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
             <version>0.11.5</version>
             <scope>runtime</scope>
+        </dependency>
+        <!-- Twilio SDK for WhatsApp messaging -->
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>9.14.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

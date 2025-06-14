@@ -23,7 +23,7 @@ const TeacherLogin = ({ onLoginSuccess, onSwitchToSuperadmin }) => {
     setSuccess(false);
 
     try {
-      const response = await fetch('/api/teacher/login', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8080/api'}/teacher/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

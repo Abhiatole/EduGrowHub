@@ -5,6 +5,7 @@ import com.edugrowhub.entity.Student;
 import com.edugrowhub.entity.User;
 import com.edugrowhub.repository.StudentRepository;
 import com.edugrowhub.repository.UserRepository;
+import com.edugrowhub.service.WhatsAppNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ public class StudentController {
 
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
+    private final WhatsAppNotificationService whatsAppNotificationService;
 
     @PostMapping("/students")
     public ResponseEntity<?> createStudent(@RequestBody Map<String, String> studentRequest) {
@@ -80,17 +82,24 @@ public class StudentController {
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Student with this email already exists");
             }
-            
-            // Create new student
+              // Create new student
             Student student = new Student(
                 name.trim(),
                 email.trim().toLowerCase(),
+                null, // phoneNumber - will be updated later if provided
                 LocalDateTime.now(),
                 teacher
             );
             
             // Save student
             Student savedStudent = studentRepository.save(student);
+              // Send WhatsApp notification to teacher (optional)
+            try {
+                whatsAppNotificationService.sendStudentEnrolledNotification(teacher.getPhoneNumber(), savedStudent);
+            } catch (Exception e) {
+                // Log notification failure but don't fail the student creation
+                System.err.println("Failed to send WhatsApp notification: " + e.getMessage());
+            }
             
             // Build response
             Map<String, Object> response = new HashMap<>();

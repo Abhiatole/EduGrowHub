@@ -1,121 +1,235 @@
+/**
+ * Main Application Component
+ * 
+ * Handles routing, authentication, and global state management
+ * for the EduGrowHub Learning Management System.
+ * 
+ * @author EduGrowHub Development Team
+ * @version 1.0.0
+ */
+
 import React, { useState, useEffect } from 'react';
-import SuperadminLogin from './components/SuperadminLogin';
-import TeacherLogin from './components/TeacherLogin';
-import StudentEnrollmentForm from './components/StudentEnrollmentForm';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
+import { AuthService } from './services/authService';
 
+// Import Pages
+import StudentLogin from './pages/StudentLogin';
+import TeacherLogin from './pages/TeacherLogin';
+import StudentDashboard from './pages/StudentDashboard';
+import TeacherDashboard from './pages/TeacherDashboard';
+import StudentRegistration from './pages/StudentRegistration';
+import TakeTest from './pages/TakeTest';
+import TestResults from './pages/TestResults';
+import Reports from './pages/Reports';
+import Profile from './pages/Profile';
+import HomePage from './pages/HomePage';
+
+// Import Components
+import Layout from './components/layout/Layout';
+import ProtectedRoute from './components/common/ProtectedRoute';
+import LoadingSpinner from './components/ui/LoadingSpinner';
+
+/**
+ * Authentication Context
+ */
+export const AuthContext = React.createContext();
+
+/**
+ * Main App Component
+ */
 function App() {
-  const [loginType, setLoginType] = useState('superadmin'); // 'superadmin' or 'teacher'
-  const [currentView, setCurrentView] = useState('login'); // 'login' or 'dashboard'
-  const [userRole, setUserRole] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Check if user is already logged in
+  // Check for existing authentication on app start
   useEffect(() => {
-    const teacherToken = localStorage.getItem('teacherToken');
-    const superadminToken = localStorage.getItem('superadminToken');
-    const storedRole = localStorage.getItem('userRole');
+    const checkAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const userData = await AuthService.validateToken();
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        localStorage.removeItem('token');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    if (teacherToken && storedRole === 'TEACHER') {
-      setUserRole('TEACHER');
-      setCurrentView('dashboard');
-      setLoginType('teacher');
-    } else if (superadminToken && storedRole === 'SUPERADMIN') {
-      setUserRole('SUPERADMIN');
-      setCurrentView('dashboard');
-      setLoginType('superadmin');
-    }
+    checkAuth();
   }, []);
 
-  const handleLoginSuccess = (token) => {
-    // Handle successful login
-    console.log('Login successful, token:', token);
-    const storedRole = localStorage.getItem('userRole');
-    setUserRole(storedRole);
-    setCurrentView('dashboard');
+  /**
+   * Login function
+   */
+  const login = (userData) => {
+    setUser(userData);
   };
 
-  const handleLogout = () => {
-    // Clear all tokens and user data
-    localStorage.removeItem('teacherToken');
-    localStorage.removeItem('superadminToken');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userEmail');
-    
-    // Reset state
-    setUserRole(null);
-    setCurrentView('login');
-    setLoginType('superadmin');
+  /**
+   * Logout function
+   */
+  const logout = () => {
+    AuthService.logout();
+    setUser(null);
   };
 
-  const switchToTeacher = () => {
-    setLoginType('teacher');
-  };
-
-  const switchToSuperadmin = () => {
-    setLoginType('superadmin');
-  };
-  return (
-    <div className="App">
-      <div className="min-h-screen bg-gray-100">
-        <div className="container mx-auto px-4 py-8">
-          
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">EduGrowHub</h1>
-            <p className="text-gray-600">Educational Institute Management System</p>
-            
-            {/* User Info and Logout */}
-            {currentView === 'dashboard' && userRole && (
-              <div className="mt-4 flex justify-center items-center space-x-4">
-                <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                  {userRole === 'TEACHER' ? '👨‍🏫 Teacher Dashboard' : '🔐 Superadmin Dashboard'}
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition duration-200"
-                >
-                  🚪 Logout
-                </button>
-              </div>
-            )}
-            
-            {/* Login Type Indicator */}
-            {currentView === 'login' && (
-              <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                {loginType === 'superadmin' ? '🔐 Superadmin Portal' : '👨‍🏫 Teacher Portal'}
-              </div>
-            )}
-          </div>
-          
-          {/* Main Content */}
-          {currentView === 'login' ? (
-            // Login Components
-            loginType === 'superadmin' ? (
-              <SuperadminLogin 
-                onLoginSuccess={handleLoginSuccess}
-                onSwitchToTeacher={switchToTeacher}
-              />
-            ) : (
-              <TeacherLogin 
-                onLoginSuccess={handleLoginSuccess}
-                onSwitchToSuperadmin={switchToSuperadmin}
-              />
-            )
-          ) : (
-            // Dashboard Components
-            userRole === 'TEACHER' ? (
-              <StudentEnrollmentForm />
-            ) : userRole === 'SUPERADMIN' ? (
-              <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-8 text-center">
-                <div className="text-blue-500 text-6xl mb-4">🔐</div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">Superadmin Dashboard</h2>
-                <p className="text-gray-600 mb-4">Welcome to the administrative panel.</p>
-                <p className="text-gray-500 text-sm">Superadmin features coming soon...</p>
-              </div>
-            ) : null
-          )}
-        </div>
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner />
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<HomePage />} />
+            <Route 
+              path="/student/login" 
+              element={
+                user ? (
+                  <Navigate to={user.role === 'STUDENT' ? '/student/dashboard' : '/teacher/dashboard'} replace />
+                ) : (
+                  <StudentLogin />
+                )
+              } 
+            />
+            <Route 
+              path="/teacher/login" 
+              element={
+                user ? (
+                  <Navigate to={user.role === 'TEACHER' ? '/teacher/dashboard' : '/student/dashboard'} replace />
+                ) : (
+                  <TeacherLogin />
+                )
+              } 
+            />
+            <Route 
+              path="/student/register" 
+              element={
+                user ? (
+                  <Navigate to={user.role === 'STUDENT' ? '/student/dashboard' : '/teacher/dashboard'} replace />
+                ) : (
+                  <StudentRegistration />
+                )
+              } 
+            />
+
+            {/* Protected Student Routes */}
+            <Route 
+              path="/student/dashboard" 
+              element={
+                <ProtectedRoute role="STUDENT">
+                  <Layout>
+                    <StudentDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/student/test/:testId" 
+              element={
+                <ProtectedRoute role="STUDENT">
+                  <Layout>
+                    <TakeTest />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/student/results" 
+              element={
+                <ProtectedRoute role="STUDENT">
+                  <Layout>
+                    <TestResults />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/student/profile" 
+              element={
+                <ProtectedRoute role="STUDENT">
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Protected Teacher Routes */}
+            <Route 
+              path="/teacher/dashboard" 
+              element={
+                <ProtectedRoute role="TEACHER">
+                  <Layout>
+                    <TeacherDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/teacher/reports" 
+              element={
+                <ProtectedRoute role="TEACHER">
+                  <Layout>
+                    <Reports />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/teacher/profile" 
+              element={
+                <ProtectedRoute role="TEACHER">
+                  <Layout>
+                    <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Catch all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+
+          {/* Global Toast Notifications */}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#4ade80',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 5000,
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+        </div>
+      </Router>
+    </AuthContext.Provider>
   );
 }
 

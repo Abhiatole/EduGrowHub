@@ -4,10 +4,13 @@ import com.edugrowhub.entity.Role;
 import com.edugrowhub.entity.Student;
 import com.edugrowhub.entity.TestResult;
 import com.edugrowhub.entity.User;
+import com.edugrowhub.entity.WhatsAppLog;
 import com.edugrowhub.repository.StudentRepository;
 import com.edugrowhub.repository.TestResultRepository;
 import com.edugrowhub.repository.UserRepository;
+import com.edugrowhub.service.WhatsAppService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,11 +26,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/teacher")
 @RequiredArgsConstructor
+@Slf4j
 public class TestResultController {
 
     private final TestResultRepository testResultRepository;
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
+    private final WhatsAppService whatsAppService;
 
     @PostMapping("/students/{studentId}/marks")
     public ResponseEntity<?> addTestResult(
@@ -163,9 +168,31 @@ public class TestResultController {
                 testDate,
                 student
             );
-            
-            // Save test result
+              // Save test result
             TestResult savedTestResult = testResultRepository.save(testResult);
+            
+            // Send WhatsApp notification to student (if phone number is available)
+            WhatsAppLog whatsAppLog = null;
+            try {
+                if (student.getPhoneNumber() != null && !student.getPhoneNumber().trim().isEmpty()) {
+                    log.info("Sending WhatsApp notification for test result to student ID: {}", student.getId());
+                    whatsAppLog = whatsAppService.sendTestResultNotification(
+                        student, 
+                        teacher, 
+                        savedTestResult.getSubject(),
+                        savedTestResult.getScore(),
+                        savedTestResult.getMaxScore(),
+                        savedTestResult.getPercentage(),
+                        savedTestResult.getGrade()
+                    );
+                    log.info("WhatsApp notification sent successfully. Log ID: {}", whatsAppLog.getId());
+                } else {
+                    log.warn("Cannot send WhatsApp notification: Student ID {} has no phone number", student.getId());
+                }
+            } catch (Exception whatsAppException) {
+                // Log WhatsApp error but don't fail the test result creation
+                log.error("Failed to send WhatsApp notification for test result: {}", whatsAppException.getMessage());
+            }
             
             // Build response
             Map<String, Object> response = new HashMap<>();
@@ -181,6 +208,23 @@ public class TestResultController {
             response.put("studentEmail", student.getEmail());
             response.put("teacherName", teacher.getName());
             response.put("message", "Test result added successfully");
+            
+            // Add WhatsApp notification status to response
+            if (whatsAppLog != null) {
+                Map<String, Object> whatsAppStatus = new HashMap<>();
+                whatsAppStatus.put("sent", whatsAppLog.isSuccessful());
+                whatsAppStatus.put("status", whatsAppLog.getMessageStatus());
+                whatsAppStatus.put("recipientPhone", whatsAppLog.getMaskedRecipientPhone());
+                if (whatsAppLog.isFailed()) {
+                    whatsAppStatus.put("error", whatsAppLog.getErrorMessage());
+                }
+                response.put("whatsAppNotification", whatsAppStatus);
+            } else {
+                response.put("whatsAppNotification", Map.of(
+                    "sent", false, 
+                    "reason", "No phone number available"
+                ));
+            }
             
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
             

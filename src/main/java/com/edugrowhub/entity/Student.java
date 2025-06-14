@@ -22,9 +22,14 @@ public class Student {
     
     @Column(nullable = false)
     private String name;
-    
-    @Column(nullable = false, unique = true)
+      @Column(nullable = false, unique = true)
     private String email;
+    
+    @Column(name = "phone_number")
+    private String phoneNumber;
+    
+    @Column(name = "password")
+    private String password;
     
     @Column(nullable = false)
     private LocalDateTime enrolledDate;
@@ -36,11 +41,11 @@ public class Student {
     // One student can have many test results
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TestResult> testResults = new ArrayList<>();
-    
-    // Constructor without id (for creating new students)
-    public Student(String name, String email, LocalDateTime enrolledDate, User teacher) {
+      // Constructor without id (for creating new students)
+    public Student(String name, String email, String phoneNumber, LocalDateTime enrolledDate, User teacher) {
         this.name = name;
         this.email = email;
+        this.phoneNumber = phoneNumber;
         this.enrolledDate = enrolledDate;
         this.teacher = teacher;
     }
