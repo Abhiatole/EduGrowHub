@@ -19,7 +19,9 @@ import axios from 'axios';
 
 // API Configuration
 const API_CONFIG = {
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8080/api',
+  baseURL: process.env.NODE_ENV === 'production' 
+    ? (process.env.REACT_APP_API_URL || 'http://localhost:8080/api')
+    : '/api', // Use proxy in development
   timeout: parseInt(process.env.REACT_APP_API_TIMEOUT) || 10000,
   headers: {
     'Content-Type': 'application/json',

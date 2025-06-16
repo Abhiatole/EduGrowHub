@@ -85,7 +85,7 @@ const TeacherLogin = () => {
     try {
       const response = await AuthService.loginTeacher(formData);
       
-      if (response.success) {
+      if (response.token) {
         toast.success('Welcome back, Teacher!');
         navigate('/teacher/dashboard');
       } else {

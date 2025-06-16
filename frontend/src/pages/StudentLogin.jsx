@@ -85,7 +85,7 @@ const StudentLogin = () => {
     try {
       const response = await AuthService.loginStudent(formData);
       
-      if (response.success) {
+      if (response.token) {
         toast.success('Login successful!');
         navigate('/student/dashboard');
       } else {

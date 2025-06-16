@@ -44,12 +44,23 @@ build/
 .env.test.local
 .env.production.local
 
-### Logs ###
-logs/
-*.log
+### Environment Configuration ###
+.env.local
 .env
+*.env
+application-local.properties
+edugrowhub-key.pem
+*.pem
 
-### OS ###
+### Logs ###
+*.log
+logs/
+
+### Node.js (if present) ###
+node_modules/
+npm-debug.log*
+
+### OS Files ###
 .DS_Store
 Thumbs.db
 desktop.ini
