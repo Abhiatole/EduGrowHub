@@ -47,7 +47,7 @@ export class AuthService {
     try {
       const response = await api.post('/teacher/login', credentials);
       
-      if (response.data.success && response.data.token) {
+      if (response.data.token) {
         api.setToken(response.data.token);
       }
       
