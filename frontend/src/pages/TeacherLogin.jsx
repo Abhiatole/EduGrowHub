@@ -8,13 +8,14 @@
  * @version 1.0.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GraduationCap, Mail, Lock } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
 import { AuthService } from '../services/authService';
+import { AuthContext } from '../App';
 import toast from 'react-hot-toast';
 
 /**
@@ -22,6 +23,7 @@ import toast from 'react-hot-toast';
  */
 const TeacherLogin = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -86,6 +88,13 @@ const TeacherLogin = () => {
       const response = await AuthService.loginTeacher(formData);
       
       if (response.token) {
+        // Set user in context with teacher data
+        const userData = {
+          ...response.teacher,
+          role: 'TEACHER',
+          token: response.token
+        };
+        login(userData);
         toast.success('Welcome back, Teacher!');
         navigate('/teacher/dashboard');
       } else {
