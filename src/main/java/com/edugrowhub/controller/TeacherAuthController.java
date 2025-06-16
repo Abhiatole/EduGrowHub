@@ -15,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -63,7 +65,22 @@ public class TeacherAuthController {
             // Generate JWT token
             String token = jwtUtil.generateToken(user.getEmail());
             
-            return ResponseEntity.ok(new AuthResponse(token));
+            // Build success response
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Login successful");
+            response.put("token", token);
+            response.put("tokenType", "Bearer");
+            response.put("expiresIn", 3600000); // 1 hour
+            
+            // Add teacher information
+            Map<String, Object> teacherInfo = new HashMap<>();
+            teacherInfo.put("id", user.getId());
+            teacherInfo.put("email", user.getEmail());
+            teacherInfo.put("name", user.getName());
+            teacherInfo.put("role", user.getRole().toString());
+            response.put("teacher", teacherInfo);
+            
+            return ResponseEntity.ok(response);
             
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
