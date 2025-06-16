@@ -8,13 +8,14 @@
  * @version 1.0.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { BookOpen, Mail, Lock, AlertCircle } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
 import { AuthService } from '../services/authService';
+import { AuthContext } from '../App';
 import toast from 'react-hot-toast';
 
 /**
@@ -22,6 +23,7 @@ import toast from 'react-hot-toast';
  */
 const StudentLogin = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -86,6 +88,13 @@ const StudentLogin = () => {
       const response = await AuthService.loginStudent(formData);
       
       if (response.token) {
+        // Set user in context with student data
+        const userData = {
+          ...response.student,
+          role: 'STUDENT',
+          token: response.token
+        };
+        login(userData);
         toast.success('Login successful!');
         navigate('/student/dashboard');
       } else {
