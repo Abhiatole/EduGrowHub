@@ -16,6 +16,7 @@ import { AuthService } from './services/authService';
 // Import Pages
 import StudentLogin from './pages/StudentLogin';
 import TeacherLogin from './pages/TeacherLogin';
+import SuperAdminLogin from './pages/SuperAdminLogin';
 import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentRegistration from './pages/StudentRegistration';
@@ -24,6 +25,12 @@ import TestResults from './pages/TestResults';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import HomePage from './pages/HomePage';
+import Features from './pages/Features';
+import About from './pages/About';
+import Contact from './pages/Contact';
+import EnterMarks from './pages/EnterMarks';
+import AdminDashboard from './pages/AdminDashboard';
+import Students from './pages/Students';
 
 // Import Components
 import Layout from './components/layout/Layout';
@@ -46,14 +53,14 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem(process.env.REACT_APP_JWT_STORAGE_KEY || 'edugrowhub_token');
         if (token) {
           const userData = await AuthService.validateToken();
           setUser(userData);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
-        localStorage.removeItem('token');
+        localStorage.removeItem(process.env.REACT_APP_JWT_STORAGE_KEY || 'edugrowhub_token');
       } finally {
         setLoading(false);
       }
@@ -98,11 +105,18 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
+            <Route path="/features" element={<Features />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
             <Route 
               path="/student/login" 
               element={
                 user ? (
-                  <Navigate to={user.role === 'STUDENT' ? '/student/dashboard' : '/teacher/dashboard'} replace />
+                  <Navigate to={
+                    user.role === 'STUDENT' ? '/student/dashboard' : 
+                    user.role === 'TEACHER' ? '/teacher/dashboard' : 
+                    '/admin/dashboard'
+                  } replace />
                 ) : (
                   <StudentLogin />
                 )
@@ -112,9 +126,27 @@ function App() {
               path="/teacher/login" 
               element={
                 user ? (
-                  <Navigate to={user.role === 'TEACHER' ? '/teacher/dashboard' : '/student/dashboard'} replace />
+                  <Navigate to={
+                    user.role === 'TEACHER' ? '/teacher/dashboard' : 
+                    user.role === 'STUDENT' ? '/student/dashboard' : 
+                    '/admin/dashboard'
+                  } replace />
                 ) : (
                   <TeacherLogin />
+                )
+              } 
+            />
+            <Route 
+              path="/admin/login" 
+              element={
+                user ? (
+                  <Navigate to={
+                    user.role === 'SUPERADMIN' ? '/admin/dashboard' : 
+                    user.role === 'TEACHER' ? '/teacher/dashboard' : 
+                    '/student/dashboard'
+                  } replace />
+                ) : (
+                  <SuperAdminLogin />
                 )
               } 
             />
@@ -122,7 +154,11 @@ function App() {
               path="/student/register" 
               element={
                 user ? (
-                  <Navigate to={user.role === 'STUDENT' ? '/student/dashboard' : '/teacher/dashboard'} replace />
+                  <Navigate to={
+                    user.role === 'STUDENT' ? '/student/dashboard' : 
+                    user.role === 'TEACHER' ? '/teacher/dashboard' : 
+                    '/admin/dashboard'
+                  } replace />
                 ) : (
                   <StudentRegistration />
                 )
@@ -183,6 +219,26 @@ function App() {
               } 
             />
             <Route 
+              path="/teacher/students" 
+              element={
+                <ProtectedRoute role="TEACHER">
+                  <Layout>
+                    <Students />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/teacher/marks" 
+              element={
+                <ProtectedRoute role="TEACHER">
+                  <Layout>
+                    <EnterMarks />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
               path="/teacher/reports" 
               element={
                 <ProtectedRoute role="TEACHER">
@@ -198,6 +254,18 @@ function App() {
                 <ProtectedRoute role="TEACHER">
                   <Layout>
                     <Profile />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Protected Admin Routes */}
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedRoute role="SUPERADMIN">
+                  <Layout>
+                    <AdminDashboard />
                   </Layout>
                 </ProtectedRoute>
               } 

@@ -87,6 +87,16 @@ const HomePage = () => {
               Your comprehensive Learning Management System designed to empower students and educators 
               with innovative tools for modern education.
             </p>
+            {process.env.REACT_APP_ENVIRONMENT === 'development' && (
+              <div className="bg-yellow-100 border border-yellow-400 rounded-lg p-4 mb-8 max-w-2xl mx-auto">
+                <h3 className="font-semibold text-yellow-800 mb-2">Demo Credentials:</h3>
+                <div className="text-sm text-yellow-700 space-y-1">
+                  <p>Student: student@demo.com / demo123</p>
+                  <p>Teacher: teacher@demo.com / demo123</p>
+                  <p>Admin: admin@demo.com / admin123</p>
+                </div>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/student/login">
                 <Button size="lg" className="w-full sm:w-auto">

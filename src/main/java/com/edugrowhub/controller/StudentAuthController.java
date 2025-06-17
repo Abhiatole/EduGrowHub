@@ -337,6 +337,85 @@ public class StudentAuthController {
     }
 
     /**
+     * Student Registration Endpoint
+     * 
+     * Allows students to register for an account by providing their basic information.
+     * The student will be created without a password initially and will need to be
+     * activated by a teacher.
+     * 
+     * @param registrationRequest Map containing student registration data
+     * @return ResponseEntity with success message or error
+     */
+    @PostMapping("/register")
+    public ResponseEntity<?> registerStudent(@RequestBody Map<String, String> registrationRequest) {
+        try {
+            // Extract and validate input parameters
+            String name = registrationRequest.get("name");
+            String email = registrationRequest.get("email");
+            String teacherCode = registrationRequest.get("teacherCode");
+
+            // Input validation
+            if (name == null || name.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("Name is required"));
+            }
+
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("Email is required"));
+            }
+
+            if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse("Invalid email format"));
+            }
+
+            // Sanitize inputs
+            name = name.trim();
+            email = email.trim().toLowerCase();
+            teacherCode = teacherCode != null ? teacherCode.trim() : null;
+
+            log.info("Student registration attempt for email: {}", maskEmail(email));
+
+            // Check if student already exists
+            Optional<Student> existingStudent = studentRepository.findByEmail(email);
+            if (existingStudent.isPresent()) {
+                log.warn("Student registration failed: Email already exists: {}", maskEmail(email));
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(createErrorResponse("Email already registered"));
+            }
+
+            // Create new student
+            Student student = new Student();
+            student.setName(name);
+            student.setEmail(email);
+            student.setEnrolledDate(java.time.LocalDateTime.now());
+            // Password will be set by teacher during activation
+            student.setPassword(null);
+
+            // Save student
+            Student savedStudent = studentRepository.save(student);
+
+            log.info("Student registration successful for email: {}, ID: {}", 
+                    maskEmail(email), savedStudent.getId());
+
+            // Build success response
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Registration successful. Please contact your teacher for account activation.");
+            response.put("studentId", savedStudent.getId());
+            response.put("email", savedStudent.getEmail());
+            response.put("name", savedStudent.getName());
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (Exception e) {
+            log.error("Error during student registration: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(createErrorResponse("Registration failed. Please try again later."));
+        }
+    }
+
+    /**
      * Create a standardized error response
      * 
      * @param message Error message

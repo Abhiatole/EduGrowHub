@@ -15,6 +15,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -62,7 +64,23 @@ public class AuthController {
             // Generate JWT token
             String token = jwtUtil.generateToken(user.getEmail());
             
-            return ResponseEntity.ok(new AuthResponse(token));
+            // Build success response  
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Login successful");
+            response.put("token", token);
+            response.put("tokenType", "Bearer");
+            response.put("expiresIn", 3600000); // 1 hour
+            
+            // Add user information
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", user.getId());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("name", user.getName());
+            userInfo.put("role", user.getRole().toString());
+            response.put("user", userInfo);
+            
+            return ResponseEntity.ok(response);
             
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

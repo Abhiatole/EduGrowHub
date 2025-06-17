@@ -10,7 +10,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Award, Calendar, MessageSquare } from 'lucide-react';
-import Layout from '../components/layout/Layout';
 import Card, { CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { StudentService } from '../services/studentService';
@@ -54,7 +53,19 @@ const StudentDashboard = () => {
 
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      toast.error('Failed to load dashboard data');
+      
+      // For development - create mock data if API fails
+      const mockResults = [
+        { id: 1, subject: 'Mathematics', marks: 85, maxMarks: 100, testDate: new Date().toISOString(), grade: 'A' },
+        { id: 2, subject: 'Science', marks: 92, maxMarks: 100, testDate: new Date(Date.now() - 86400000).toISOString(), grade: 'A+' },
+        { id: 3, subject: 'English', marks: 78, maxMarks: 100, testDate: new Date(Date.now() - 172800000).toISOString(), grade: 'B+' }
+      ];
+      
+      setTestResults(mockResults);
+      calculateStats(mockResults);
+      setUserData({ name: 'Demo Student', email: 'demo@student.com' });
+      
+      toast.error('Using demo data - backend not connected');
     } finally {
       setLoading(false);
     }
@@ -119,16 +130,13 @@ const StudentDashboard = () => {
 
   if (loading) {
     return (
-      <Layout userRole="student" userData={userData} title="Dashboard">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </Layout>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
     );
   }
 
   return (
-    <Layout userRole="student" userData={userData} title="Student Dashboard">
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg p-6 text-white">
@@ -213,20 +221,39 @@ const StudentDashboard = () => {
                     const gradeInfo = getGrade(percentage);
                     
                     return (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div>
+                      <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
                           <p className="font-medium text-gray-900">{result.subject}</p>
+                          <div className="text-right">
+                            <p className="font-bold text-gray-900">
+                              {result.marks}/{result.maxMarks}
+                            </p>
+                            <p className={`text-sm font-medium ${gradeInfo.color}`}>
+                              {gradeInfo.grade}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              percentage >= 90 ? 'bg-green-500' : 
+                              percentage >= 80 ? 'bg-blue-500' : 
+                              percentage >= 70 ? 'bg-yellow-500' : 
+                              percentage >= 60 ? 'bg-orange-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                        
+                        <div className="flex justify-between items-center">
                           <p className="text-sm text-gray-500">
                             {formatDate(result.testDate)}
                           </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-gray-900">
-                            {result.marks}/{result.maxMarks}
-                          </p>
-                          <p className={`text-sm font-medium ${gradeInfo.color}`}>
-                            {gradeInfo.grade} ({percentage.toFixed(1)}%)
-                          </p>
+                          <span className="text-sm font-medium text-gray-900">
+                            {percentage.toFixed(1)}%
+                          </span>
                         </div>
                       </div>
                     );
@@ -299,7 +326,7 @@ const StudentDashboard = () => {
           </Card>
         </div>
       </div>
-    </Layout>
+    </div>
   );
 };
 

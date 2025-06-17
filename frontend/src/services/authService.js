@@ -32,6 +32,27 @@ export class AuthService {
       
       return response.data;
     } catch (error) {
+      // For development - provide mock login if backend is not available
+      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+        console.warn('Backend not available, using mock login');
+        
+        // Mock successful login for demo purposes
+        if (credentials.email === 'student@demo.com' && credentials.password === 'demo123') {
+          const mockResponse = {
+            token: 'mock_jwt_token_student',
+            student: {
+              id: 1,
+              name: 'Demo Student',
+              email: credentials.email,
+              enrolledDate: new Date().toISOString()
+            }
+          };
+          
+          api.setToken(mockResponse.token);
+          return mockResponse;
+        }
+      }
+      
       throw new Error(error.message || 'Student login failed');
     }
   }
@@ -53,6 +74,27 @@ export class AuthService {
       
       return response.data;
     } catch (error) {
+      // For development - provide mock login if backend is not available
+      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+        console.warn('Backend not available, using mock login');
+        
+        // Mock successful login for demo purposes
+        if (credentials.email === 'teacher@demo.com' && credentials.password === 'demo123') {
+          const mockResponse = {
+            token: 'mock_jwt_token_teacher',
+            teacher: {
+              id: 1,
+              name: 'Demo Teacher',
+              email: credentials.email,
+              role: 'TEACHER'
+            }
+          };
+          
+          api.setToken(mockResponse.token);
+          return mockResponse;
+        }
+      }
+      
       throw new Error(error.message || 'Teacher login failed');
     }
   }
@@ -74,6 +116,28 @@ export class AuthService {
       
       return response.data;
     } catch (error) {
+      // For development - provide mock login if backend is not available
+      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+        console.warn('Backend not available, using mock login');
+        
+        // Mock successful login for demo purposes
+        if (credentials.email === 'admin@demo.com' && credentials.password === 'admin123') {
+          const mockResponse = {
+            success: true,
+            token: 'mock_jwt_token_superadmin',
+            user: {
+              id: 1,
+              name: 'Demo Admin',
+              email: credentials.email,
+              role: 'SUPERADMIN'
+            }
+          };
+          
+          api.setToken(mockResponse.token);
+          return mockResponse;
+        }
+      }
+      
       throw new Error(error.message || 'SuperAdmin login failed');
     }
   }
@@ -101,6 +165,38 @@ export class AuthService {
       const response = await api.get('/auth/validate');
       return response.data;
     } catch (error) {
+      // For development - provide mock validation if backend is not available
+      if (process.env.REACT_APP_ENVIRONMENT === 'development') {
+        const token = api.getToken();
+        
+        if (token && token.includes('mock_jwt_token')) {
+          console.warn('Backend not available, using mock token validation');
+          
+          if (token.includes('student')) {
+            return {
+              id: 1,
+              name: 'Demo Student',
+              email: 'student@demo.com',
+              role: 'STUDENT'
+            };
+          } else if (token.includes('teacher')) {
+            return {
+              id: 1,
+              name: 'Demo Teacher', 
+              email: 'teacher@demo.com',
+              role: 'TEACHER'
+            };
+          } else if (token.includes('superadmin')) {
+            return {
+              id: 1,
+              name: 'Demo Admin',
+              email: 'admin@demo.com', 
+              role: 'SUPERADMIN'
+            };
+          }
+        }
+      }
+      
       throw error;
     }
   }

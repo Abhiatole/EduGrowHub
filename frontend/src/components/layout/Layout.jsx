@@ -8,7 +8,7 @@
  * @version 1.0.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Menu, 
@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import Button from '../ui/Button';
 import { AuthService } from '../../services/authService';
+import { AuthContext } from '../../App';
 
 /**
  * Navigation items configuration based on user role
@@ -54,29 +55,30 @@ const navigationConfig = {
  * 
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Page content
- * @param {string} props.userRole - Current user role (student, teacher, superadmin)
- * @param {Object} props.userData - Current user data
  * @param {string} props.title - Page title
  * @returns {React.Component} Layout component
  */
 const Layout = ({ 
   children, 
-  userRole = 'student', 
-  userData = {}, 
   title = 'EduGrowHub' 
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useContext(AuthContext);
 
+  // Get user role and data from context
+  const userRole = user?.role?.toLowerCase() || 'student';
+  const userData = user || {};
+  
   const navigation = navigationConfig[userRole] || navigationConfig.student;
 
   /**
    * Handle user logout
    */
   const handleLogout = () => {
-    AuthService.logout();
-    navigate('/login');
+    logout();
+    navigate('/');
   };
 
   /**
